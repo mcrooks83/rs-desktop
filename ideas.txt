@@ -1,0 +1,17 @@
+Ideas for improving this 
+
+1. manage multiple sensors - mainly the ui components 
+2. create improved displays for each sensor - view class per sensor?
+3. using inheritence and abstract methods reduce the callbacks required
+4. use some kind of lookup to configure the sensors - data rate mainly - add to sidebar
+5. make the plot updates concurrent
+
+There needs to be a way to handle the different payloads available and ensure all the parts align
+
+set the payload to be "some_payload"
+the encoding must be altered for that payload
+the writing to csv header must be altered 
+the display must be altered as the data will be in different positions in the packet
+
+could be represented as a Payload Class 
+
