@@ -63,8 +63,10 @@ async def export_to_csv(sensor_manager, address):
     sensor = list(filter(lambda x: x.address == address, sensor_manager.connected_sensors))[0]
     data_to_write_to_csv = sensor.get_raw_data()
 
+    modified_address = address.replace(":", "_")
+
     now = int(datetime.timestamp(datetime.now()) * 1000)
-    csv_file_name = f"{now}_{address}.csv"
+    csv_file_name = f'{now}_{modified_address}.csv'
     row_headers = c.csv_header
 
     hf.check_and_create_export_diretort(c.export_dir)

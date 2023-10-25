@@ -87,9 +87,14 @@ class PlotFrame(LabelFrame):
         self.roll = []
         self.projected_roll = []
         self.projected_pitch = []
+        self.projected_yaw = []
         
         self.prev_timestamp = 0
         self.packet_count = 0
+
+        self.ema_roll = None
+        self.ema_pitch = None
+        self.ema_yaw =  None
 
     def set_max_pitch(self, pitch):
         self.max_pitch = pitch
@@ -113,8 +118,8 @@ class PlotFrame(LabelFrame):
         projected_roll = self.projected_roll
         projected_pitch = self.projected_pitch
 
-        smoothed_roll = savgol_filter(projected_roll, self.c.smoothing_window, self.c.polyorder, mode="nearest")
-        smoothed_pitch = savgol_filter(projected_pitch, self.c.smoothing_window, self.c.polyorder, mode="nearest")
+        #smoothed_roll = savgol_filter(projected_roll, self.c.smoothing_window, self.c.polyorder, mode="nearest")
+        #smoothed_pitch = savgol_filter(projected_pitch, self.c.smoothing_window, self.c.polyorder, mode="nearest")
 
         self.ax_proj.clear()
         self.ax_proj.set_title(f"Projected Pitch and Roll")
@@ -130,7 +135,7 @@ class PlotFrame(LabelFrame):
         self.ax_proj.text(0.005, 1.05, f"Data rate: {self.rate} Hz ", transform=self.ax_proj.transAxes)
         self.ax_proj.text(0.005, 1.00, f"Max pitch: {self.max_pitch} deg ", transform=self.ax_proj.transAxes)
         self.ax_proj.text(0.005, 0.95, f"Max roll: {self.max_roll} deg ", transform=self.ax_proj.transAxes)
-        self.ax_proj.plot(smoothed_pitch, smoothed_roll)
+        self.ax_proj.plot(projected_pitch, projected_roll)
         self.projected_angles_canvas.draw()
 
         #non threaded
@@ -181,8 +186,10 @@ class PlotFrame(LabelFrame):
         #convert quaternion to euler angles
         #def euler_from_quaternion(x, y, z, w):
         # x, y, z, w
+        # in radiants
         roll, pitch, yaw = hf.euler_from_quaternion(data[0][2], data[0][3], data[0][4], data[0][1] )
 
+        # these are the raw valus converted to degrees
         roll_deg = math.degrees(roll)
         pitch_deg = math.degrees(pitch)
         yaw_deg = math.degrees(yaw)
@@ -196,12 +203,14 @@ class PlotFrame(LabelFrame):
         if (pitch_deg > self.max_pitch):
             self.set_max_pitch(round(abs(pitch_deg),2))
 
+        #exponential moving average 
+        roll_moving_avg = hf.calculate_ema(roll, self.c.alpha, self.ema_roll)
+        pitch_moving_avg = hf.calculate_ema(pitch, self.c.alpha, self.ema_pitch)
+        yaw_moving_avg = hf.calculate_ema(yaw, self.c.alpha, self.ema_yaw)
 
-        # currently this is the raw roll as it doesnt seem to make sense yet
-        #self.projected_roll.append( math.degrees(math.sin(roll)))
-        #self.projected_pitch.append( math.degrees(math.cos(pitch)))
-        self.projected_roll.append(math.degrees(roll))
-        self.projected_pitch.append(math.degrees(pitch))
+        self.projected_roll.append(math.degrees(roll_moving_avg))
+        self.projected_pitch.append(math.degrees(pitch_moving_avg))
+        self.projected_yaw.append(math.degrees(yaw_moving_avg))
 
     def battery_status_callback(self, address, battery):
         print(f"ui batt status {address} {battery}%")

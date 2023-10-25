@@ -106,3 +106,11 @@ def write_data_to_csv(export_dir, csv_file_name, row_headers, data_to_write):
                 writer.writerow(row_to_write)
 
         return True
+
+# exponential moving avereage
+def calculate_ema(data_point, alpha, ema=None):
+    if ema is None:
+        ema = data_point
+    else:
+        ema = alpha * data_point + (1 - alpha) * ema
+    return ema
