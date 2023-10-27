@@ -22,6 +22,7 @@ class PlotFrame(LabelFrame):
         self.rate = c.data_rate
         self.max_roll = 0
         self.max_pitch = 0
+        self.max_yaw = 0
         self.configure(text = "Visualisation",)
 
         self.s.set_sensor_data_callback(self.sensor_data_callback)
@@ -41,9 +42,9 @@ class PlotFrame(LabelFrame):
 
         self.projected_angles = Figure(figsize=(6,6))
         self.ax_proj = self.projected_angles.subplots()
-        self.ax_proj.set_title(f"Projected Pitch and Roll")
-        self.ax_proj.set_xlim(-90,90)
-        self.ax_proj.set_ylim(-90,90)
+        self.ax_proj.set_title(f"Projected Pitch and Yaw")
+        self.ax_proj.set_xlim(-50,50)
+        self.ax_proj.set_ylim(-50,50)
         self.ax_proj.spines['left'].set_position('center')
         self.ax_proj.spines['bottom'].set_position('center')
         self.ax_proj.spines['right'].set_color('none')
@@ -54,7 +55,7 @@ class PlotFrame(LabelFrame):
        
         self.ax_proj.text(0.005, 1.05, f"Data rate: {self.c.data_rate} Hz ", transform=self.ax_proj.transAxes)
         self.ax_proj.text(0.005, 1.00, f"Max pitch: {self.max_pitch} deg ", transform=self.ax_proj.transAxes)
-        self.ax_proj.text(0.005, 0.95, f"Max roll: {self.max_roll} deg ", transform=self.ax_proj.transAxes)
+        self.ax_proj.text(0.005, 0.95, f"Max yaw: {self.max_yaw} deg ", transform=self.ax_proj.transAxes)
         self.projected_angles_canvas = FigureCanvasTkAgg(self.projected_angles, master=self)
         self.projected_angles_canvas.get_tk_widget().grid(row=1, column=0, columnspan=2, sticky='nsew', padx=5, pady=2)
 
@@ -96,11 +97,18 @@ class PlotFrame(LabelFrame):
         self.ema_pitch = None
         self.ema_yaw =  None
 
+        self.yaw_offset = None
+        self.pitch_offset = None
+        self.roll_offset = None
+
     def set_max_pitch(self, pitch):
         self.max_pitch = pitch
     
     def set_max_roll(self, roll):
         self.max_roll = roll
+    
+    def set_max_yaw(self, yaw):
+        self.max_yaw = yaw
     # callbacks
     def update_stream_plot(self):
         
@@ -117,14 +125,12 @@ class PlotFrame(LabelFrame):
 
         projected_roll = self.projected_roll
         projected_pitch = self.projected_pitch
-
-        #smoothed_roll = savgol_filter(projected_roll, self.c.smoothing_window, self.c.polyorder, mode="nearest")
-        #smoothed_pitch = savgol_filter(projected_pitch, self.c.smoothing_window, self.c.polyorder, mode="nearest")
+        projected_yaw = self.projected_yaw
 
         self.ax_proj.clear()
         self.ax_proj.set_title(f"Projected Pitch and Roll")
-        self.ax_proj.set_xlim(-90,90)
-        self.ax_proj.set_ylim(-90,90)
+        self.ax_proj.set_xlim(-50,50)
+        self.ax_proj.set_ylim(-50,50)
         self.ax_proj.spines['left'].set_position('center')
         self.ax_proj.spines['bottom'].set_position('center')
         self.ax_proj.spines['right'].set_color('none')
@@ -134,8 +140,8 @@ class PlotFrame(LabelFrame):
         self.ax_proj.autoscale(False)
         self.ax_proj.text(0.005, 1.05, f"Data rate: {self.rate} Hz ", transform=self.ax_proj.transAxes)
         self.ax_proj.text(0.005, 1.00, f"Max pitch: {self.max_pitch} deg ", transform=self.ax_proj.transAxes)
-        self.ax_proj.text(0.005, 0.95, f"Max roll: {self.max_roll} deg ", transform=self.ax_proj.transAxes)
-        self.ax_proj.plot(projected_pitch, projected_roll)
+        self.ax_proj.text(0.005, 0.95, f"Max yaw: {self.max_yaw} deg ", transform=self.ax_proj.transAxes)
+        self.ax_proj.plot(projected_yaw, projected_pitch)
         self.projected_angles_canvas.draw()
 
         #non threaded
@@ -165,9 +171,18 @@ class PlotFrame(LabelFrame):
             self.rate = int( 1/((timestamp - self.prev_timestamp)/1e6))
             self.prev_timestamp = timestamp
         else:
-            self.prev_timestamp = timestamp        
+            self.prev_timestamp = timestamp     
+
+        #convert quaternion to euler angles
+        #def euler_from_quaternion(x, y, z, w):
+        # x, y, z, w
+        # in radiants
+        roll, pitch, yaw = hf.euler_from_quaternion(data[0][2], data[0][3], data[0][4], data[0][1] )   
        
         if(self.packet_count == 0):
+            # capture the angles for offset correction
+            self.yaw_offset = yaw
+
             self.time.append(self.packet_count)
             self.packet_count +=1
         else:
@@ -183,12 +198,6 @@ class PlotFrame(LabelFrame):
         self.accel_y.append(a_y)
         self.accel_z.append(a_z)
 
-        #convert quaternion to euler angles
-        #def euler_from_quaternion(x, y, z, w):
-        # x, y, z, w
-        # in radiants
-        roll, pitch, yaw = hf.euler_from_quaternion(data[0][2], data[0][3], data[0][4], data[0][1] )
-
         # these are the raw valus converted to degrees
         roll_deg = math.degrees(roll)
         pitch_deg = math.degrees(pitch)
@@ -202,15 +211,30 @@ class PlotFrame(LabelFrame):
             self.set_max_roll(round(abs(roll_deg),2))
         if (pitch_deg > self.max_pitch):
             self.set_max_pitch(round(abs(pitch_deg),2))
+        if(yaw_deg > self.max_yaw):
+            self.set_max_yaw(round(abs(yaw_deg), 2))
 
         #exponential moving average 
         roll_moving_avg = hf.calculate_ema(roll, self.c.alpha, self.ema_roll)
-        pitch_moving_avg = hf.calculate_ema(pitch, self.c.alpha, self.ema_pitch)
-        yaw_moving_avg = hf.calculate_ema(yaw, self.c.alpha, self.ema_yaw)
+        #pitch_moving_avg = hf.calculate_ema(pitch, self.c.alpha, self.ema_pitch)
+        #yaw_moving_avg = hf.calculate_ema(yaw - self.yaw_offset, self.c.alpha, self.ema_yaw)
+        pitch_moving_avg = pitch
+        yaw_moving_avg = yaw - self.yaw_offset
 
-        self.projected_roll.append(math.degrees(roll_moving_avg))
-        self.projected_pitch.append(math.degrees(pitch_moving_avg))
-        self.projected_yaw.append(math.degrees(yaw_moving_avg))
+        # head projection 
+        # head_x = x_ref + scaling_factor * math.cos(flexion_radians) * math.sin(rotation_radians)
+        # head_y = y_ref + scaling_factor * math.sin(flexion_radians)
+
+        x = self.c.x_ref + (self.c.max_rotation * math.cos(pitch_moving_avg) * math.sin(yaw_moving_avg))
+        y = self.c.y_ref + (self.c.max_flex_ext * math.sin(pitch_moving_avg))
+
+
+
+
+        #self.projected_roll.append(math.degrees(roll_moving_avg))
+        self.projected_pitch.append(y)
+        self.projected_yaw.append(x)
+
 
     def battery_status_callback(self, address, battery):
         print(f"ui batt status {address} {battery}%")
@@ -251,6 +275,7 @@ class PlotFrame(LabelFrame):
         self.yaw = []
         self.projected_pitch = []
         self.projected_roll = []
+        self.projected_yaw = []
         self.prev_timestamp = 0
     
         self.ax.clear()

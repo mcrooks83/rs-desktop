@@ -114,3 +114,7 @@ def calculate_ema(data_point, alpha, ema=None):
     else:
         ema = alpha * data_point + (1 - alpha) * ema
     return ema
+
+
+# head_x = x_ref + scaling_factor * math.cos(flexion_radians) * math.sin(rotation_radians)
+# head_y = y_ref + scaling_factor * math.sin(flexion_radians)
