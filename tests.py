@@ -6,7 +6,7 @@ scaling_factor_rotation = 30
 scaling_factor_flexion = 30
 
 flexion_radians = math.radians(0)
-rotation_radians = math.radians(30)
+rotation_radians = math.radians(0)
 
 cos_flex = math.cos(flexion_radians)
 cos_rot = math.cos(rotation_radians)
@@ -19,4 +19,4 @@ x = (scaling_factor_rotation * math.cos(flexion_radians) * math.sin(rotation_rad
 y = (scaling_factor_flexion * math.sin(flexion_radians))
 
 
-print(x)
+print(x, y)

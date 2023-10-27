@@ -54,8 +54,8 @@ class PlotFrame(LabelFrame):
         self.ax_proj.autoscale(False)
        
         self.ax_proj.text(0.005, 1.05, f"Data rate: {self.c.data_rate} Hz ", transform=self.ax_proj.transAxes)
-        self.ax_proj.text(0.005, 1.00, f"Max pitch: {self.max_pitch} deg ", transform=self.ax_proj.transAxes)
-        self.ax_proj.text(0.005, 0.95, f"Max yaw: {self.max_yaw} deg ", transform=self.ax_proj.transAxes)
+        #self.ax_proj.text(0.005, 1.00, f"Max pitch: {self.max_pitch} deg ", transform=self.ax_proj.transAxes)
+        #self.ax_proj.text(0.005, 0.95, f"Max yaw: {self.max_yaw} deg ", transform=self.ax_proj.transAxes)
         self.projected_angles_canvas = FigureCanvasTkAgg(self.projected_angles, master=self)
         self.projected_angles_canvas.get_tk_widget().grid(row=1, column=0, columnspan=2, sticky='nsew', padx=5, pady=2)
 
@@ -139,8 +139,8 @@ class PlotFrame(LabelFrame):
         self.ax_proj.yaxis.set_ticks_position('left')
         self.ax_proj.autoscale(False)
         self.ax_proj.text(0.005, 1.05, f"Data rate: {self.rate} Hz ", transform=self.ax_proj.transAxes)
-        self.ax_proj.text(0.005, 1.00, f"Max pitch: {self.max_pitch} deg ", transform=self.ax_proj.transAxes)
-        self.ax_proj.text(0.005, 0.95, f"Max yaw: {self.max_yaw} deg ", transform=self.ax_proj.transAxes)
+        #self.ax_proj.text(0.005, 1.00, f"Max pitch: {self.max_pitch} deg ", transform=self.ax_proj.transAxes)
+        #self.ax_proj.text(0.005, 0.95, f"Max yaw: {self.max_yaw} deg ", transform=self.ax_proj.transAxes)
         self.ax_proj.plot(projected_yaw, projected_pitch)
         self.projected_angles_canvas.draw()
 
@@ -227,6 +227,7 @@ class PlotFrame(LabelFrame):
 
         x = self.c.x_ref + (self.c.max_rotation * math.cos(pitch_moving_avg) * math.sin(yaw_moving_avg))
         y = self.c.y_ref + (self.c.max_flex_ext * math.sin(pitch_moving_avg))
+        print(f"x :{x} y: {y}")
 
 
 
