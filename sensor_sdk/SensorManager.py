@@ -55,7 +55,6 @@ class SensorManager:
     
     def send_message(self, msg, address, data=None):
         print(f"Received message from client: {msg} from {address}")
-        print("data",data)
         if data is not None:
             self.loop.call_soon_threadsafe(self.message_queue.put_nowait, {"message": msg, "address": address, "data":data})
         else:
