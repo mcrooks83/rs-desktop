@@ -92,6 +92,7 @@ class PlotFrame(LabelFrame):
         
         self.prev_timestamp = 0
         self.packet_count = 0
+        self.list_of_timestamps = []
 
         self.ema_roll = None
         self.ema_pitch = None
@@ -100,6 +101,16 @@ class PlotFrame(LabelFrame):
         self.yaw_offset = None
         self.pitch_offset = None
         self.roll_offset = None
+
+        self.bind("<Key>", self.space_pressed)
+        self.focus_set()
+    
+    def space_pressed(self, event):
+        print("key event")
+        #<KeyPress event keysym=space keycode=822083616 char=' ' x=256 y=222>
+        if(event.keysym == "space"):
+            self.list_of_timestamps.append(self.prev_timestamp)
+            
 
     def set_max_pitch(self, pitch):
         self.max_pitch = pitch
@@ -227,7 +238,7 @@ class PlotFrame(LabelFrame):
 
         x = self.c.x_ref + (self.c.max_rotation * math.cos(pitch_moving_avg) * math.sin(yaw_moving_avg))
         y = self.c.y_ref + (self.c.max_flex_ext * math.sin(pitch_moving_avg))
-        print(f"x :{x} y: {y}")
+        #print(f"x :{x} y: {y}")
 
 
 
@@ -299,7 +310,7 @@ class PlotFrame(LabelFrame):
         
     def export_to_csv(self, address):
         print(f"export to csv: {address}")
-        self.s.sensor_manager.send_message("export", address)
+        self.s.sensor_manager.send_message("export", address, self.list_of_timestamps )
         self.console_frame.insert_text(f"writing sensor {address} data to csv ..." + '\n\n') 
         
     def export_to_csv_done_callback(self, address):

@@ -94,15 +94,21 @@ def check_and_create_export_diretort(dir):
     else:
         print(f"Export directory '{dir}' already exists in the current working directory.")
 
-def write_data_to_csv(export_dir, csv_file_name, row_headers, data_to_write):
+def write_data_to_csv(export_dir, csv_file_name, row_headers, data_to_write, list_of_timestamps):
         with open(export_dir + "/" + csv_file_name, 'w', newline='') as file:
             writer = csv.writer(file)
             writer.writerow(row_headers)  # Write the header row
             for row in data_to_write:
                 row_to_write = []
-                #custom payload 5 has 11 pieces
+                #custom payload 5 has 11 pieces + space_bar_presses
                 for d in range(11):
                     row_to_write.append(row[0][d])
+                # if the timestamp  is in the list_of_timestamps add 1 else 0
+                if(row_to_write[0] in list_of_timestamps):
+                    row_to_write.append(1)
+                else:
+                    row_to_write.append(0)
+
                 writer.writerow(row_to_write)
 
         return True

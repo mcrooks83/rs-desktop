@@ -58,7 +58,7 @@ async def indentify_sensor(sensor_manager, address):
     await sensor.ble_client.write_gatt_char(c.BLE_UUID_DEVICE_CONTROL, c.device_control_indentify_char, response=True)
     #control = await sensor.ble_client.read_gatt_char(c.BLE_UUID_DEVICE_CONTROL, response=True)  
     
-async def export_to_csv(sensor_manager, address):
+async def export_to_csv(sensor_manager, address, list_of_timestamps):
     # should export all active sensors.  currently there is only one so use the address to find it.
     sensor = list(filter(lambda x: x.address == address, sensor_manager.connected_sensors))[0]
     data_to_write_to_csv = sensor.get_raw_data()
@@ -71,7 +71,7 @@ async def export_to_csv(sensor_manager, address):
 
     hf.check_and_create_export_diretort(c.export_dir)
 
-    done = hf.write_data_to_csv(c.export_dir, csv_file_name, row_headers, data_to_write_to_csv)
+    done = hf.write_data_to_csv(c.export_dir, csv_file_name, row_headers, data_to_write_to_csv, list_of_timestamps)
     
     if(done):
         # remove raw data

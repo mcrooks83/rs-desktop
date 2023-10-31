@@ -17,7 +17,7 @@ device_control_output_rate_20_char =  b'\x04\x00\x02\n\x00\x1e\x00\tXsens DOT\x0
 device_control_output_rate_60_char =  b'\x04\x00\x02\n\x00\x1e\x00\tXsens DOT\x00\x00\x00\x00\x00\x00\x00\x3C\x00\x00\x00\x00\x00\x00'
 
 # for custom payload 5 
-csv_header = ["timestamp", "q_w", "q_x", "q_y", "q_z", "acc_x", "acc_y", "acc_z", "gyr_x", "gyr_y", "gyr_z" ]
+csv_header = ["timestamp", "q_w", "q_x", "q_y", "q_z", "acc_x", "acc_y", "acc_z", "gyr_x", "gyr_y", "gyr_z", "space_press" ]
 export_dir = "exports"
 
 

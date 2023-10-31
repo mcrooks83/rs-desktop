@@ -53,9 +53,12 @@ class SensorManager:
         self.message_queue = asyncio.Queue()
         self.loop.run_until_complete(self.manager_loop())
     
-    def send_message(self, msg, address):
+    def send_message(self, msg, address, data=None):
         print(f"Received message from client: {msg} from {address}")
-        self.loop.call_soon_threadsafe(self.message_queue.put_nowait, {"message": msg, "address": address,})
+        if(data):
+            self.loop.call_soon_threadsafe(self.message_queue.put_nowait, {"message": msg, "address": address, "data":data})
+        else:
+            self.loop.call_soon_threadsafe(self.message_queue.put_nowait, {"message": msg, "address": address,})
        
     def add_scanned_sensors(self, s):
         self.scanned_sensors = s
@@ -123,7 +126,8 @@ class SensorManager:
                 await sf.indentify_sensor(self, msg["address"])
 
             elif(msg["message"] == "export"):
-                await sf.export_to_csv(self, msg["address"])
+                # in this case data is a list of timestamps 
+                await sf.export_to_csv(self, msg["address"], msg["data"])
                 
             elif msg["message"] == "quit":
                 self.running = False
