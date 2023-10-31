@@ -310,7 +310,7 @@ class PlotFrame(LabelFrame):
         
     def export_to_csv(self, address):
         print(f"export to csv: {address}")
-        self.s.sensor_manager.send_message("export", address, self.list_of_timestamps )
+        self.s.sensor_manager.send_message("export", address, data=self.list_of_timestamps )
         self.console_frame.insert_text(f"writing sensor {address} data to csv ..." + '\n\n') 
         
     def export_to_csv_done_callback(self, address):
